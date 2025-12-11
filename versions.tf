@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.13.0"
 
   backend "gcs" {
-    bucket = "bootcamp-478214-wif-oidc-tfstate"
+    bucket = "bucket-wif-oidc-tfstate"
     prefix = "terraform/state"
   }
 
