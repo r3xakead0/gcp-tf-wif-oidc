@@ -8,6 +8,48 @@ Terraform configuration to create a Google Cloud Workload Identity Federation (W
 - `gcloud` CLI (for authentication) and Application Default Credentials (`gcloud auth application-default login`) or `GOOGLE_APPLICATION_CREDENTIALS` pointing to a service account key
 - A GCS bucket for the remote Terraform state (edit the `backend "gcs"` bucket/prefix in `versions.tf` if you need a different location)
 
+## Diagram
+```mermaid
+flowchart LR
+  %% Terraform config
+  subgraph IaC["Terraform"]
+    SA["google_service_account<br/>GitHub Actions Service Account"]
+    ROLE["google_project_iam_member<br/>Grant roles (e.g., roles/editor)"]
+    POOL["google_iam_workload_identity_pool<br/>WIF Pool (global)"]
+    PROVIDER["google_iam_workload_identity_pool_provider<br/>OIDC Provider (issuer: token.actions.githubusercontent.com)<br/>attr mapping + condition: repository == org/repo"]
+    BIND["google_service_account_iam_member<br/>roles/iam.workloadIdentityUser<br/>principalSet -> pool attribute.repository/org/repo"]
+  end
+
+  %% GitHub side
+  subgraph GH["GitHub Actions"]
+    WF["Workflow Job<br/>(id-token: write)"]
+    OIDC["GitHub OIDC Token<br/>(JWT: sub, repository, ref, actor)"]
+  end
+
+  %% Google Cloud side
+  subgraph GCP["Google Cloud"]
+    STS["STS Token Exchange<br/>(Workload Identity Federation)"]
+    ACCESS["Short-lived Access Token<br/>for Service Account"]
+    APIS["GCP APIs / Resources<br/>(Cloud Run, GCS, Firestore, etc.)"]
+  end
+
+  %% Relationships (creation/config)
+  SA --> ROLE
+  POOL --> PROVIDER
+  SA --> BIND
+  POOL --> BIND
+
+  %% Runtime flow
+  WF --> OIDC
+  OIDC -->|present JWT| STS
+  STS -->|validate issuer + conditions| PROVIDER
+  PROVIDER -->|subject/attributes allowed| POOL
+  POOL -->|allowed principalSet| BIND
+  BIND -->|impersonate| SA
+  SA -->|mint| ACCESS
+  ACCESS --> APIS
+```
+
 ## Installation
 1) Clone this repository:
 ```bash
