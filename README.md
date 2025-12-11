@@ -33,24 +33,28 @@ gcloud auth application-default login
    or set `GOOGLE_APPLICATION_CREDENTIALS` to a service account key file.
 
 ## Usage
-1) Initialize and review the plan:
+1) Initialize:
 ```bash
-terraform init
+terraform init -backend-config="bucket=bucket-wif-oidc-tfstate"
+```
+
+2) Review the plan:
+```bash
 terraform plan
 ```
 
-2) Apply to create the WIF pool, provider, and service account:
+3) Apply to create the WIF pool, provider, and service account:
 ```bash
 terraform apply
 ```
 
-3) Capture outputs (for wiring into GitHub Actions):
+4) Capture outputs (for wiring into GitHub Actions):
 ```bash
 terraform output gcp_sa_email
 terraform output gcp_wif_provider
 ```
 
-4) Example GitHub Actions configuration using the created provider and service account:
+5) Example GitHub Actions configuration using the created provider and service account:
 ```yaml
 - name: Authenticate to Google Cloud (OIDC)
   uses: google-github-actions/auth@v2
@@ -60,7 +64,7 @@ terraform output gcp_wif_provider
     project_id: ${{ secrets.GCP_PROJECT_ID }}
 ```
 
-5) To remove the resources:
+6) To remove the resources:
 ```bash
 terraform destroy
 ```
