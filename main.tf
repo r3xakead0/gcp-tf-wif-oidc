@@ -35,18 +35,27 @@ resource "google_iam_workload_identity_pool_provider" "github_provider" {
   }
 
   attribute_mapping = {
-    "google.subject"       = "assertion.sub"
-    "attribute.repository" = "assertion.repository"
-    "attribute.ref"        = "assertion.ref"
-    "attribute.actor"      = "assertion.actor"
+    "google.subject"             = "assertion.sub"
+    "attribute.repository"       = "assertion.repository"
+    "attribute.repository_owner" = "assertion.repository_owner"
+    "attribute.ref"              = "assertion.ref"
+    "attribute.actor"            = "assertion.actor"
   }
 
-  attribute_condition = "attribute.repository=='${var.org_repo}'"
+  attribute_condition = "attribute.repository_owner == '${var.org}'"
+  //attribute_condition = "attribute.repository_owner == '${var.org}' && attribute.ref == 'refs/heads/main'"
 }
 
 resource "google_service_account_iam_member" "wif_binding" {
   service_account_id = google_service_account.github_sa.name
   role               = "roles/iam.workloadIdentityUser"
 
-  member = "principalSet://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github_pool.workload_identity_pool_id}/attribute.repository/${var.org_repo}"
+  member = "principalSet://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github_pool.workload_identity_pool_id}/attribute.repository_owner/${var.org}"
+}
+
+resource "google_service_account_iam_member" "wif_token_creator" {
+  service_account_id = google_service_account.github_sa.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+
+  member = "principalSet://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github_pool.workload_identity_pool_id}/attribute.repository_owner/${var.org}"
 }

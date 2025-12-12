@@ -9,10 +9,10 @@ variable "region" {
   default     = "us-central1"
 }
 
-variable "org_repo" {
-  description = "Allowed GitHub repository (format: org/repo)"
+variable "org" {
+  description = "Allowed GitHub organization"
   type        = string
-  default     = "r3xakead0/gcp-tf-wif-oidc"
+  default     = "r3xakead0"
 }
 
 variable "service_account_id" {
