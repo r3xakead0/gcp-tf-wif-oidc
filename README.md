@@ -60,10 +60,10 @@ cd gcp-tf-wif-oidc
 ```hcl
 project_id         = "your-gcp-project-id"
 region             = "us-central1"
-org_repo           = "github-org/repo"   # e.g., my-org/my-repo
+org                = "github-org"   # e.g., my-org
 service_account_id = "github-oidc-sa"
 ```
-   - `org_repo` must match the GitHub repository allowed to assume the identity.
+   - `org` must match the GitHub account allowed to assume the identity.
    - `service_account_id` is the short name; the email is derived automatically.
 
 3) (Optional) If you use a different Terraform state bucket/prefix, edit `versions.tf` accordingly.
